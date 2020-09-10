@@ -11,13 +11,11 @@ from Resamp import gridding,loadfits
 import Cube2Im 
 from astropy.time import Time
 
+filename_source='/Users/simon/common/ppdisks/HD163296/DSHARP_continuum/guvmem_runs/mem_lS0.0_lL0.0_nogrid/mod_out.fits'
+filename_im='mod_out_fullim.fits'
+fileout='mod_out_z.fits'
 
-filename_source='/Users/simon/common/ppdisks/HD135344B/data/Cycle6/clean/tclean_HD135344Bbriggs0.0_self.fits'
-filename_im='HD135344B_Briggs0.0_fullim.fits'
-#fileout='HD135344B_Briggs0.0_SIMBADCenter.fits'
-fileout='HD135344B_Briggs0.0_zoom.fits'
-
-side=1.5  #arcsec
+side=4.0  #arcsec
 
 ######################################################################
 

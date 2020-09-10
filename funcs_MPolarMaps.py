@@ -271,7 +271,7 @@ def exec_polar_expansions(M):
     
 
     hdr3 = deepcopy(hdr2)
-    hdr3['CDELT1']=hdr3['CDELT1']*cosi
+    hdr3['CDELT1']=hdr3['CDELT1']*np.fabs(cosi)
     
     im3=gridding(hdurot,hdr3)
     if M.DumpAllFitsFiles:
@@ -324,7 +324,7 @@ def exec_polar_expansions(M):
             bmaj=hdr2['BMAJ']
         if M.Verbose:
             print(( "bmaj = ",bmaj,"\n"))
-        Nind=2.*np.pi*rrs * cosi  /(bmaj*3600.) #cosi *
+        Nind=2.*np.pi*rrs * np.fabs(cosi)  /(bmaj*3600.) #cosi *
         iNind1=np.argmin(np.fabs(Nind - 1.0))
         rNind1=rrs[iNind1]
         if M.Verbose:
@@ -442,7 +442,7 @@ def exec_polar_expansions(M):
 
     
         hdr3 = deepcopy(hdr2)
-        hdr3['CDELT1']=hdr3['CDELT1']/cosi
+        hdr3['CDELT1']=hdr3['CDELT1']/np.fabs(cosi)
         
         im4=gridding(hdu_stretch_av,hdr3)
         if M.DumpAllFitsFiles:
@@ -579,7 +579,7 @@ def exec_polar_expansions(M):
         pf.writeto(fileout_stretched_x,im_x, hdr2, overwrite=True)
         
         hdr3 = deepcopy(hdr2)
-        hdr3['CDELT1']=hdr3['CDELT1']/cosi
+        hdr3['CDELT1']=hdr3['CDELT1']/np.fabs(cosi)
         fileout_proj_x=re.sub('fullim.fits', 'x_proj.fits', filename_fullim)
         im4_x=gridding(fileout_stretched_x,hdr3)
         pf.writeto(fileout_proj_x,im4_x, hdr2, overwrite=True)
@@ -658,7 +658,9 @@ def exec_polar_expansions(M):
         
         plt.setp(axprofile.get_xticklabels(),visible=True) #, fontsize=6)
         plt.setp(axprofile.get_yticklabels(),visible=True) #, fontsize=6)
-        plt.xlim(0.,a_max_plot)
+        if (a_max_plot > 0.):
+            plt.xlim(0.,a_max_plot)
+            
         #plt.ylim(np.min(Iprof),1.1*np.max(Iprof))
         plt.ylim(-0.1*np.max(Iprof),1.1*np.max(Iprof))
         
