@@ -7,7 +7,7 @@ from astropy.io import fits as pf
 import re
 include_path='/Users/simon/common/python/include/'
 sys.path.append(include_path)
-from Resamp import *
+from ImUtils.Resamp import *
 from copy import deepcopy
 from astropy.wcs import WCS
 from pylab import *
