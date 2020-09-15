@@ -105,14 +105,14 @@ class OptimModel():
 
 
     def emcee(self,M):
-        from funcs_OptimPolarMaps import exec_emcee
+        from MPolarMaps.funcs_OptimPolarMaps import exec_emcee
         result_ml=np.load(M.workdir+'result_ml.dat.npy')
         
         retvals = exec_emcee(M,result_ml,True,self)
         return retvals
 
     def Grid(self,M):
-        from funcs_OptimPolarMaps import exec_Grid
+        from MPolarMaps.funcs_OptimPolarMaps import exec_Grid
         exec_Grid(M,self)
         return 
 
