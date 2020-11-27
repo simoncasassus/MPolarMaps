@@ -2,10 +2,10 @@ import sys
 import numpy as np
 from copy import deepcopy
 
-include_path='/Users/simon/common/python/include/polarmaps/'
+include_path='/home/simon/common/python/include/'
 sys.path.append(include_path)
 
-import MPolarMaps
+import MPolarMaps.Master
 
 filename_source='mod_out_z.fits'
 noise_floor=1E-6 
@@ -13,7 +13,7 @@ noise_floor=1E-6
 PA=312.379492
 inc=2.330638*180./np.pi  # degrees
 
-M=MPolarMaps.Setup(
+M=MPolarMaps.Master.Setup(
     filename_source=filename_source,
     workdir='',
     PA=PA,  # deg
@@ -30,10 +30,10 @@ M=MPolarMaps.Setup(
     zoomfactor=1., # use value > 1. to shrink the field of view. 
     y_label=r'$I_\mathrm{b6}$ / Jy pix$^{-1}$', # for the radial plots
     ForceCube2Im=False, # in case source is a datacube
-    wBaseNoise=True, # for radial profile stats
+    wBaseNoise=True, # if True sets dispersion in radial profile to fixed value at noise_radius
     noise_radius=0.1, # use for base noise estimate
     Verbose=True,
-    noise_floor=noise_floor,
+    noise_floor=noise_floor,  # for Chi2 stats 
     wBaseNoiseCore=True) # use base noise at the origin of radial profiles. 
 
 #######################################################################
@@ -43,7 +43,6 @@ M.workdir='polarmaps_modout_default/'  # directory for products
 M.prep_files()
 M.polar_expansions()
 
-sys.exit()
 
 #######################################################################
 # a deliberatedly offset expansion
@@ -58,7 +57,7 @@ sys.exit()
 # optimizations
 ######################################################################
 
-OptimM=MPolarMaps.OptimModel(M,
+OptimM=MPolarMaps.Master.OptimModel(M,
                              RunMCMC=False,
                              Nit=500, #MCMC iterations
                              nwalkers=30,
