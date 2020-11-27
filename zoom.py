@@ -7,8 +7,8 @@ import os
 from copy import deepcopy
 include_path='/Users/simon/common/python/include/'
 sys.path.append(include_path)
-from Resamp import gridding,loadfits
-import Cube2Im 
+from ImUtils.Resamp import gridding,loadfits
+import ImUtils.Cube2Im  as Cube2Im
 from astropy.time import Time
 
 filename_source='/Users/simon/common/ppdisks/HD163296/DSHARP_continuum/guvmem_runs/mem_lS0.0_lL0.0_nogrid/mod_out.fits'
