@@ -6,12 +6,14 @@ import os.path
 from scipy import ndimage
 from astropy.io import fits as pf
 import re
-include_path='/Users/simon/common/python/include/'
-sys.path.append(include_path)
-from ImUtils.Resamp import *
 from copy import deepcopy
 from astropy.wcs import WCS
 from pylab import *
+
+include_path='/Users/simon/common/python/include/'
+sys.path.append(include_path)
+from ImUtils.Resamp import *
+import  ImUtils.Cube2Im as Cube2Im
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -130,7 +132,7 @@ def exec_prep_files(M):
     hdu0 = pf.open(filename_source)
     hdr0 = hdu0[0].header
     if ((hdr0['NAXIS'] > 2) or ForceCube2Im):
-        hdu=cube2im(filename_source,filename_fullim)
+        hdu=Cube2Im.slice0(filename_source,filename_fullim)
         im1=hdu.data
         hdr1=hdu.header
     else:
