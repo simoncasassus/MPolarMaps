@@ -340,6 +340,15 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
     
     import corner
 
+    labels=names
+    for ilabel,alabel in enumerate(labels):
+        if (alabel eq 'dra_off'):
+            labels[ilabel] = r"$\Delta \alpha$"
+        if (alabel eq 'ddec_off'):
+            labels[ilabel] = r"$\Delta \delta$"
+        
+
+    
     fig=corner.corner(chains,
                       labels=names,
                       quantiles=[0.16, 0.5,0.84],
