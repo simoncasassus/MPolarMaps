@@ -363,7 +363,22 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
 
     fig.savefig(workdir+OptimM.TriangleFile)
 
-    print( "finished MCMC for region workdir",workdir)
+    print("Finished MCMC for  workdir",workdir)
+
+    statusstring=''
+    for iparam in range(nvar):
+        setattr(M,names[iparam],mcmc_results[iparam][0])
+        statusstring=statusstring+names[iparam]+" %.3f " %(mcmc_results[iparam][0])
+
+    print("Set M object to: "+statusstring)
+
+    M.DumpAllFitsFiles=True
+    M.Verbose=True
+    M.Grid=False
+
+    print("running final polar expansion")
+    M.polar_expansions()
+
     return [names,mcmc_results]
 
 
