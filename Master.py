@@ -109,6 +109,7 @@ class OptimModel():
         result_ml=np.load(M.workdir+'result_ml.dat.npy')
         
         retvals = exec_emcee(M,result_ml,True,self)
+        
         return retvals
 
     def Grid(self,M):
