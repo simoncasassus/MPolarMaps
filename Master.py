@@ -52,6 +52,7 @@ class Setup():
                  noise_floor=-1.,
                  wBaseNoise=False,
                  noise_radius=0.,
+                 UVplane=False, # if true squeeze instead of stretch, as for uvplane
                  wBaseNoiseCore=False,
                  Verbose=True,
                  VerboseInit=True,
