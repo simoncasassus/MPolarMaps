@@ -41,7 +41,7 @@ if SIMBADCenter:
     c = SkyCoord(RAICRS,DECICRS, frame='icrs')
     #proper motions mas/yr : 	-19.114 -23.140 [0.110 0.081 90]
 
-    obsdate = hdr1['DATE'] # 
+    obsdate = hdr1['DATE-OBS'] # 
     obstime = Time(obsdate, format='isot', scale='utc')
     tobs=obstime.jd
     print("tobs",tobs)
