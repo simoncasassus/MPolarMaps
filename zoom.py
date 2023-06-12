@@ -5,8 +5,8 @@ from astropy.io import fits as pf
 from astropy.wcs import WCS
 import os
 from copy import deepcopy
-include_path='/Users/simon/common/python/include/'
-sys.path.append(include_path)
+#include_path='/Users/simon/common/python/include/'
+#sys.path.append(include_path)
 from ImUtils.Resamp import gridding,loadfits
 import ImUtils.Cube2Im  as Cube2Im
 from astropy.time import Time
