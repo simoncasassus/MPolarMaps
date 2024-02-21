@@ -3,6 +3,7 @@ import os
 import os.path
 import numpy as np
 from astropy.io import fits as pf
+from pprint import pprint
 include_path='/Users/simon/common/python/include/'
 sys.path.append(include_path)
 import scipy.optimize as op
@@ -338,8 +339,22 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
 
 
     
-    import corner
+    print("Finished MCMC for  workdir",workdir)
+    
+    statusstring=''
+    for iparam in range(nvar):
+        print("setattr ",names[iparam],mcmc_results[iparam][0])
+        setattr(M,names[iparam],mcmc_results[iparam][0])
+        statusstring=statusstring+names[iparam]+" %.3f " %(mcmc_results[iparam][0])
 
+    print("Set M object to: "+statusstring)
+    M.DumpAllFitsFiles=True
+    M.Verbose=True
+    M.Grid=False
+    print("running final polar expansion")
+    M.polar_expansions()
+    pprint(M)
+    
     labels=names
     for ilabel,alabel in enumerate(labels):
         if (alabel == 'dra_off'):
@@ -347,6 +362,8 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
         if (alabel == 'ddec_off'):
             labels[ilabel] = r"$\Delta \delta$"
         
+
+    import corner
 
     
     fig=corner.corner(chains,
@@ -363,21 +380,7 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
 
     fig.savefig(workdir+OptimM.TriangleFile)
 
-    print("Finished MCMC for  workdir",workdir)
 
-    statusstring=''
-    for iparam in range(nvar):
-        setattr(M,names[iparam],mcmc_results[iparam][0])
-        statusstring=statusstring+names[iparam]+" %.3f " %(mcmc_results[iparam][0])
-
-    print("Set M object to: "+statusstring)
-
-    M.DumpAllFitsFiles=True
-    M.Verbose=True
-    M.Grid=False
-
-    print("running final polar expansion")
-    M.polar_expansions()
 
     return [names,mcmc_results]
 

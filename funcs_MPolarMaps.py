@@ -232,9 +232,11 @@ def exec_polar_expansions(M):
         RA = RA + ((dra_off / 3600.) / np.cos(DEC * np.pi / 180.))
         DEC = DEC + (ddec_off / 3600.)
         if M.Verbose:
-            print("about to apply shit for offset")
+            print("about to apply shift for offset")
             print("RA =", RA)
             print("DEC =", DEC)
+            print("dra_off =", dra_off)
+            print("ddec_off =", ddec_off)
 
         hdrshifted['CRVAL1'] = RA
         hdrshifted['CRVAL2'] = DEC

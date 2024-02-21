@@ -1,0 +1,4 @@
+some doubts about correct header for sp.ndimage.geometric_transform:
+hdrpolar['CDELT2']
+L308 in funcs_MPolarMaps.py
+
