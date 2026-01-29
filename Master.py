@@ -26,11 +26,12 @@ from MPolarMaps.funcs_OptimPolarMaps import *
 class Setup():
     def __init__(self,
                  filename_source='',
+                 filename_source_errormap=None,
                  workdir='',
                  PA=0.,  # degrees
                  inc=0., # degrees
-                 RA=False, # if False read from CRVAL1
-                 DEC=False,
+                 RA=None, # if False read from CRVAL1
+                 DEC=None,
                  dra_off=0.,
                  ddec_off=0.,
                  fieldscale=2.,
@@ -56,7 +57,8 @@ class Setup():
                  wBaseNoiseCore=False,
                  Verbose=True,
                  VerboseInit=True,
-                 Hdu=False,
+                 Hdu=None,
+                 Hdu_err=None,
                  DumpAllFitsFiles=True):
 
         

@@ -90,45 +90,39 @@ def polar2cartesian(outcoords, inputshape, origin, fieldscale=1.):
     return (rindex, thetaindex)
 
 
-def exec_prep_files(M):
-
-    filename_source = M.filename_source
-    workdir = M.workdir
-    PA = M.PA
-    inc = M.inc
-    RA = M.RA
-    DEC = M.DEC
-    dra_off = M.dra_off
-    ddec_off = M.ddec_off
-    XCheckInv = M.XCheckInv
-    DoRadialProfile = M.DoRadialProfile
-    ProfileExtractRadius = M.ProfileExtractRadius
-    DoAzimuthalProfile = M.DoAzimuthalProfile
-    PlotRadialProfile = M.PlotRadialProfile
-    a_min = M.a_min
-    a_max = M.a_max
+def prep_1(M, filename_source):
+    #PA = M.PA
+    #inc = M.inc
+    #RA = M.RA
+    #DEC = M.DEC
+    #dra_off = M.dra_off
+    #ddec_off = M.ddec_off
+    #XCheckInv = M.XCheckInv
+    #DoRadialProfile = M.DoRadialProfile
+    #ProfileExtractRadius = M.ProfileExtractRadius
+    #DoAzimuthalProfile = M.DoAzimuthalProfile
+    #PlotRadialProfile = M.PlotRadialProfile
+    #a_min = M.a_min
+    #a_max = M.a_max
     zoomfactor = M.zoomfactor
     Grid = M.Grid
-    y_label = M.y_label
+    #y_label = M.y_label
     ForceCube2Im = M.ForceCube2Im
     #wBaseNoise=M.wBaseNoise
     #noise_radius=M.noise_radius
     #wBaseNoiseCore=M.wBaseNoiseCore
 
-    cosi = np.cos(inc * np.pi / 180.)
+    #cosi = np.cos(inc * np.pi / 180.)
 
-    fieldscale = M.fieldscale  # shrink radial field of view of polar maps by this factor
+    #fieldscale = M.fieldscale  # shrink radial field of view of polar maps by this factor
 
-    os.system("rm -rf  " + workdir)
-
-    os.system("mkdir " + workdir)
     inbasename = os.path.basename(filename_source)
     filename_fullim = re.sub('.fits', '_fullim.fits', inbasename)
-    filename_fullim = workdir + filename_fullim
+    filename_fullim = M.workdir + filename_fullim
 
     hdu0 = pf.open(filename_source)
     hdr0 = hdu0[0].header
-    if ((hdr0['NAXIS'] > 2) or ForceCube2Im):
+    if ((hdr0['NAXIS'] > 2) or M.ForceCube2Im):
         hdu = Cube2Im.slice0(filename_source, filename_fullim)
         im1 = hdu.data
         hdr1 = hdu.header
@@ -139,16 +133,6 @@ def exec_prep_files(M):
         hdr1 = hdu[0].header
 
     hdr1.pop('CRVAL3', None)
-
-    if (isinstance(RA, bool)):
-        if (not RA):
-            RA = hdr1['CRVAL1']
-            DEC = hdr1['CRVAL2']
-    elif (not isinstance(RA, float)):
-        sys.exit("must provide a pointing center with RA, DEC in degrees")
-
-    M.RA = RA
-    M.DEC = DEC
 
     nx = int(hdr1['NAXIS1'] / zoomfactor)
     ny = nx
@@ -162,11 +146,11 @@ def exec_prep_files(M):
     hdr2['NAXIS2'] = ny
     hdr2['CRPIX1'] = (nx + 1) / 2  # 1 offset
     hdr2['CRPIX2'] = (ny + 1) / 2
-    hdr2['CRVAL1'] = RA
-    hdr2['CRVAL2'] = DEC
+    hdr2['CRVAL1'] = M.RA
+    hdr2['CRVAL2'] = M.DEC
 
     if M.Verbose:
-        print("zooming on  center", RA, DEC)
+        print("zooming on  center", M.RA, M.DEC)
 
     resamp = gridding(filename_fullim, hdr2, fullWCS=False)
 
@@ -178,11 +162,37 @@ def exec_prep_files(M):
     hdu = pf.PrimaryHDU()
     hdu.data = resamp
     hdu.header = hdr2
+    return hdu
 
+
+def exec_prep_files(M):
+
+    filename_source = M.filename_source
+    workdir = M.workdir
+    os.system("rm -rf  " + workdir)
+    os.system("mkdir " + workdir)
+    hdr0 = pf.open(filename_source)[0].header
+    if (M.RA is None):
+        RA = hdr0['CRVAL1']
+        DEC = hdr0['CRVAL2']
+        M.RA = RA
+        M.DEC = DEC
+
+
+    hdu = prep_1(M, filename_source)
     M.Hdu = hdu
 
+    if M.filename_source_errormap is not None:
+        hdu_err = prep_1(M, M.filename_source_errormap)
+        M.Hdu_err = hdu_err
 
-def exec_polar_expansions(M):
+
+def exec_polar_expansions(M,Only_Syst = False,with_Syst = True):
+    """
+    Only_Syst: only sytematic errors from error maps on resulting radial profile
+    With_Syst: add systematic errors in quadrature 
+    """
+    
     filename_source = M.filename_source
     workdir = M.workdir
     PA = M.PA
@@ -241,27 +251,49 @@ def exec_polar_expansions(M):
         hdrshifted['CRVAL1'] = RA
         hdrshifted['CRVAL2'] = DEC
         resamp = gridding(hdu, hdrshifted, fullWCS=False)
+        if M.Hdu_err is not None:
+            resamp_errmap = gridding(M.Hdu_err, hdrshifted, fullWCS=False)
 
         if M.DumpAllFitsFiles:
             print("PUNCHING SHIFTED CENTER")
             fileout_centered = re.sub('fullim.fits', 'centered.fits',
                                       filename_fullim)
             pf.writeto(fileout_centered, resamp, hdr2, overwrite=True)
+            if M.Hdu_err is not None:
+                fileout_centered_err = re.sub('fullim.fits',
+                                              'centered_errmap.fits',
+                                              filename_fullim)
+                pf.writeto(fileout_centered_err,
+                           resamp_errmap,
+                           hdr2,
+                           overwrite=True)
 
     if M.Verbose:
         print("running polarexpansion with PA", PA, "and inc", inc)
 
     rotangle = PA
-    im1rot = ndimage.rotate(resamp, rotangle, reshape=False)
-
+    im1rot = ndimage.rotate(resamp, rotangle, reshape=False, order=1)
     hdurot = pf.PrimaryHDU()
     hdurot.data = im1rot
     hdurot.header = hdr2
+
+    if M.Hdu_err is not None:
+        im1rot_err = ndimage.rotate(resamp_errmap,
+                                    rotangle,
+                                    reshape=False,
+                                    order=1)
+        hdurot_err = pf.PrimaryHDU()
+        hdurot_err.data = im1rot_err
+        hdurot_err.header = hdr2
 
     if M.DumpAllFitsFiles:
         fileout_rotated = re.sub('fullim.fits', 'rotated.fits',
                                  filename_fullim)
         hdurot.writeto(fileout_rotated, overwrite=True)
+        if M.Hdu_err is not None:
+            fileout_rotated_err = re.sub('fullim.fits', 'rotated_err.fits',
+                                         filename_fullim)
+            hdurot_err.writeto(fileout_rotated_err, overwrite=True)
 
     hdr3 = deepcopy(hdr2)
     if M.UVplane:
@@ -270,6 +302,10 @@ def exec_polar_expansions(M):
         hdr3['CDELT1'] = hdr3['CDELT1'] * np.fabs(cosi)
 
     im3 = gridding(hdurot, hdr3)
+
+    if M.Hdu_err is not None:
+        im3_err = gridding(hdurot_err, hdr3)
+
     if M.DumpAllFitsFiles:
         if M.UVplane:
             fileout_stretched = re.sub('fullim.fits', 'squeezed.fits',
@@ -279,6 +315,10 @@ def exec_polar_expansions(M):
                                        filename_fullim)
 
         pf.writeto(fileout_stretched, im3, hdr2, overwrite=True)
+        if M.Hdu_err is not None:
+            fileout_stretched = re.sub('fullim.fits', 'stretched_err.fits',
+                                       filename_fullim)
+            pf.writeto(fileout_stretched, im3, hdr2, overwrite=True)
 
     im_polar = sp.ndimage.geometric_transform(im3,
                                               cartesian2polar,
@@ -295,6 +335,18 @@ def exec_polar_expansions(M):
                                                    ((ny + 1) / 2) - 1)
                                               })
 
+    if M.Hdu_err is not None:
+        im_polar_err = sp.ndimage.geometric_transform(
+            im3_err,
+            cartesian2polar,
+            order=1,
+            output_shape=(im3.shape[0], im3.shape[1]),
+            extra_keywords={
+                'inputshape': im3.shape,
+                'fieldscale': fieldscale,
+                'origin': (((nx + 1) / 2) - 1, ((ny + 1) / 2) - 1)
+            })
+
     nphis, nrs = im_polar.shape
 
     hdupolar = pf.PrimaryHDU()
@@ -308,18 +360,45 @@ def exec_polar_expansions(M):
     hdrpolar['CDELT2'] = (hdr3['CDELT2'] / fieldscale)
     hdupolar.header = hdrpolar
 
+    hdupolar_err = deepcopy(hdupolar)
+    if M.Hdu_err is not None:
+        hdupolar_err.data = im_polar_err
+
     if M.DumpAllFitsFiles:
 
         fileout_polar = re.sub('fullim.fits', 'polar.fits', filename_fullim)
         hdupolar.writeto(fileout_polar, overwrite=True)
+        if M.Hdu_err is not None:
+            fileout_polar_err = re.sub('fullim.fits', 'polar_err.fits',
+                                       filename_fullim)
+            hdupolar_err.writeto(fileout_polar_err, overwrite=True)
 
     ######################################################################
     # profiles
 
     if (DoRadialProfile):
 
-        Iprof = np.average(im_polar, axis=1)
-        sIprof = np.std(im_polar, axis=1)
+        if M.Hdu_err is None:
+            Iprof = np.average(im_polar, axis=1)
+            sIprof = np.std(im_polar, axis=1)
+        else:
+            im_polar_err[(im_polar_err < 0.5 * M.noise_floor)] = 0.
+            im_polar_weights = 1 / im_polar_err**2
+            max_weights = 1 / M.noise_floor**2
+            im_polar_weights[(im_polar_weights > max_weights)] = 0.
+            norm_weights = np.sum(im_polar_weights, axis=1)
+            Iprof = np.sum(im_polar * im_polar_weights, axis=1) / norm_weights
+            Iprof[norm_weights <= 0] = 0.
+
+            varIprof = np.sum(im_polar**2 * im_polar_weights,
+                              axis=1) / norm_weights - Iprof**2
+            sIprof = np.sqrt(varIprof)
+            sIprof_syst = np.median(im_polar_err, axis=1)
+            if Only_Syst:
+                sIprof = sIprof_syst
+            elif with_Syst:
+                sIprof = np.sqrt(sIprof**2 + sIprof_syst**2)
+
         rrs = 3600. * (np.arange(hdrpolar['NAXIS2']) - hdrpolar['CRPIX2'] +
                        1) * hdrpolar['CDELT2'] + hdrpolar['CRVAL2']
         #np.savetxt('test.out', (rrs,Iprof))
@@ -329,6 +408,9 @@ def exec_polar_expansions(M):
             bmaj = hdr2['BMAJ']
         if M.Verbose:
             print(("bmaj = ", bmaj, "\n"))
+        #if M.Hdu_err is None:
+        #    im_polar_counts = np.zeros(im_polar_weights.shape)
+        #    im_polar_counts[(im_polar_weights > 0.)] = 1
         Nind = 2. * np.pi * rrs * np.fabs(cosi) / (bmaj * 3600.)  #cosi *
         iNind1 = np.argmin(np.fabs(Nind - 1.0))
         rNind1 = rrs[iNind1]
